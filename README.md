@@ -30,7 +30,7 @@ _In order to use the `Shrinkify` command globally you have to ..._<br>
   _Note :_ The original images do not get touched, their respective compressed version are moved to the subfolder _Compressed_ <br>
   _That's what the output looks like:_
 
-<img src="./demonstration/Progress.jpg"> <br>
+![name-of-you-image](https://raw.githubusercontent.com/RetroRock/Shrinkify/master/demonstration/Progress.JPG)
 
 ### Additional options
 
