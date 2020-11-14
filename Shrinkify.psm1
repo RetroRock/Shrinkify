@@ -61,11 +61,17 @@ function global:Shrinkify {
         $curItemIndex = $a + 1
         $itemProgress = "${curItemIndex}/${filesLength}"
         $progress = [math]::floor(($a / $filesLength) * 100)
-        $parentPath = $files[$a].Directory.FullName;
+        # $parentPath = $files[$a].Directory.FullName;
         $fileName = $files[$a].Name;
         $fullFileName = $files[$a].FullName
-        Write-Host $fullFileName
-        $newFilePath = "$p\Compressed\$fileName"
+        $newFilePath = "$p\Compressed$($fullFileName.Split([string[]]$p, [StringSplitOptions]::None)[1])"  
+        $newDirectoryPath = $newFilePath.Replace($fileName, "")
+
+        if (-not (Test-Path -Path $newDirectoryPath)) {
+            mkdir $newDirectoryPath | Out-Null 
+            Write-Host "Created directory '${newDirectoryPath}'"
+        }
+
         $secondsElapsed = (Get-Date) - $startTime
 
         $progressParams = @{
@@ -79,8 +85,8 @@ function global:Shrinkify {
             $progressParams.SecondsRemaining = $secondsRemaining
         }
 
-        if ($lastFileName) {
-            $progressParams.Activity = "Successfully compressed [${lastFileName} (${oldByteSize})] to [Compressed\${lastFileName} (${newByteSize})]" 
+        if ($lastFilePath) {
+            $progressParams.Activity = "Successfully compressed [${lastFilePath} (${oldByteSize})] to [${newFilePath} (${newByteSize})]" 
         }
         
         Write-Progress @progressParams
@@ -104,7 +110,7 @@ function global:Shrinkify {
 
         $oldByteSize = ("{0:F2}MB" -f ($fileSize / 1MB))
         $newByteSize = ("{0:F2}MB" -f ($newFileSize / 1MB))
-        $lastFileName = $fileName
+        $lastFilePath = $fullFileName
         $secondsRemaining = (($secondsElapsed.TotalSeconds / ($a + 1)) * ($filesLength - ($a + 1)))
     }
     Write-Host  "`nTotal files size before: $("{0:F2}MB" -f ($uncompressedFilesSize / 1MB))"
