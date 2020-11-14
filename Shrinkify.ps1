@@ -1,7 +1,7 @@
 function Shrinkify {
     Param (
         [PARAMETER(Mandatory = $False)][ValidateLength(1, 50)][string[]]$include,
-        [PARAMETER(Mandatory = $False)][ValidateLength(1, 4)][string]$resize,
+        [PARAMETER(Mandatory = $False)][ValidateLength(1, 15)][string]$resize,
         [PARAMETER(Mandatory = $False)][ValidateLength(3, 20)][string]$minsize,
         [switch]$recurse
     )
@@ -30,10 +30,9 @@ function Shrinkify {
     
     if ($recurse) {
         $files = Get-ChildItem `
-            -Path $path `
             -Recurse `
             -Include $toInclude `
-        | Where-Object { ( $_.PSParentPath -notlike "*${outputFolderName}*")`
+        | Where-Object { ( $_.Directory.Name -notlike "*${outputFolderName}*")`
                 -and ($_.Length -gt $minsize) } 
     }
     else {
@@ -62,8 +61,11 @@ function Shrinkify {
         $curItemIndex = $a + 1
         $itemProgress = "${curItemIndex}/${filesLength}"
         $progress = [math]::floor(($a / $filesLength) * 100)
+        $parentPath = $files[$a].Directory.FullName;
         $fileName = $files[$a].Name;
-        $newFilePath = "Compressed\${fileName}"
+        $fullFileName = $files[$a].FullName
+        Write-Host $fullFileName
+        $newFilePath = "$p\Compressed\$fileName"
         $secondsElapsed = (Get-Date) - $startTime
 
         $progressParams = @{
@@ -82,8 +84,8 @@ function Shrinkify {
         }
         
         Write-Progress @progressParams
-        magick $fileName `
-            -resize $resize `
+        magick `
+            $fullFileName `
             -sampling-factor 4:2:0 `
             -strip `
             -quality 85 `
@@ -91,7 +93,7 @@ function Shrinkify {
             -gaussian-blur 0.05 `
             -colorspace RGB `
             $newFilePath 
-        
+
         magick mogrify -resize $resize $newFilePath
         
         $fileSize = ($files[$a].length)

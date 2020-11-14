@@ -1,4 +1,3 @@
-# C:\Windows\System32\WindowsPowerShell\v1.0\Modules\Shrinkify
 function global:Shrinkify {
     Param (
         [PARAMETER(Mandatory = $False)][ValidateLength(1, 50)][string[]]$include,
@@ -31,10 +30,9 @@ function global:Shrinkify {
     
     if ($recurse) {
         $files = Get-ChildItem `
-            -Path $path `
             -Recurse `
             -Include $toInclude `
-        | Where-Object { ( $_.PSParentPath -notlike "*${outputFolderName}*")`
+        | Where-Object { ( $_.Directory.Name -notlike "*${outputFolderName}*")`
                 -and ($_.Length -gt $minsize) } 
     }
     else {
@@ -63,8 +61,11 @@ function global:Shrinkify {
         $curItemIndex = $a + 1
         $itemProgress = "${curItemIndex}/${filesLength}"
         $progress = [math]::floor(($a / $filesLength) * 100)
+        $parentPath = $files[$a].Directory.FullName;
         $fileName = $files[$a].Name;
-        $newFilePath = "Compressed\${fileName}"
+        $fullFileName = $files[$a].FullName
+        Write-Host $fullFileName
+        $newFilePath = "$p\Compressed\$fileName"
         $secondsElapsed = (Get-Date) - $startTime
 
         $progressParams = @{
@@ -84,7 +85,7 @@ function global:Shrinkify {
         
         Write-Progress @progressParams
         magick `
-            $fileName `
+            $fullFileName `
             -sampling-factor 4:2:0 `
             -strip `
             -quality 85 `
